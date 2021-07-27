@@ -1,4 +1,5 @@
 import getopt
+import json
 import os
 import sys
 from typing import List
@@ -15,9 +16,39 @@ class KeyEntity(object):
         self.is_a_path: bool = False
 
 
+def key_entity2dict(std):
+    return {
+        'key': std.key,
+        'key_short': std.key_short,
+        'key_upper': std.key_upper,
+        'value': std.value,
+        'bool_value': std.bool_value,
+        'is_a_bool': std.is_a_bool,
+        'is_a_path': std.is_a_path
+    }
+
+
+def dict2key_entity(std):
+    key_entity = KeyEntity()
+    key_entity.key = std['key']
+    key_entity.key_short = std['key_short']
+    key_entity.key_upper = std['key_upper']
+    key_entity.value = std['value']
+    key_entity.bool_value = std['bool_value']
+    key_entity.is_a_bool = std['is_a_bool']
+    key_entity.is_a_path = std['is_a_path']
+    return key_entity
+
+
 class ArgCat:
 
     keys = {}
+
+    def __init__(self, params_file: str = None):
+        default_params_file = 'params.json'
+        if params_file is not None:
+            default_params_file = params_file
+        self.config_file = os.path.join(os.getcwd(), default_params_file)
 
     def add_key(self, key: str, is_a_bool: bool = False, is_a_path: bool = False):
         key_entity = KeyEntity()
@@ -105,6 +136,9 @@ class ArgCat:
             else:
                 continue
 
+    def from_config_file(self):
+        pass
+
     def from_arg_and_environ(self, environ_override_all: bool = False):
         if environ_override_all:
             self.from_arg()
@@ -127,6 +161,34 @@ class ArgCat:
         if key not in self.keys.keys():
             self.add_key(key, is_a_bool, is_a_path)
         self.__set_key_entity_value(self.keys[key], f'{value}', from_env=True)
+
+    def remove(self, key: str):
+        if key in self.keys.keys():
+            self.keys.pop(key)
+
+    def sync_from_file(self):
+        if not os.path.isfile(self.config_file):
+            raise Exception(f"Not found `{self.config_file}`.")
+        mode = "r"
+        value = ''
+        with open(self.config_file, mode) as f:
+            json_data = ''
+            line = f.readline()
+            while line:
+                json_data += line
+                line = f.readline()
+            value = json.loads(json_data)
+        self.keys = {}
+        for k, v in value.items():
+            self.keys[k] = dict2key_entity(v)
+
+    def sync_to_file(self):
+        if os.path.isfile(self.config_file):
+            os.remove(self.config_file)
+        mode = "w"
+        with open(self.config_file, mode) as f:
+            value = json.dumps(self.keys, default=key_entity2dict)
+            f.write(value)
 
     def __set_key_entity_value(self, key_entity: KeyEntity, value: str, from_env: bool = False):
         if key_entity.is_a_bool:

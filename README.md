@@ -12,6 +12,7 @@ This will find args `-e` or `--env`, or find environment `ENV`.
 * Only read arg: `argcat.from_arg()`
 * Only read environment: `argcat.from_environ()`
 * Read both arg and environment: `argcat.from_arg_and_environ()`
+* Remove arg: `argcat.remove("env")`
 
 ## Example
 ```python
@@ -76,6 +77,14 @@ release: False
 some_path: YOUR_WORK_PATH/./hello
 ```
 
+## Sync File
+Default, we using `./params.json` file to be the params file. 
+`sync_from_file` will **remove** all of exist values, and load those params json file's values.
+```python
+argcat = ArgCat(params_file='YOUR_CUSTOM_PARAMS_FILE.json')
+argcat.sync_to_file()
+argcat.sync_from_file()
+```
 
 # Note for owner
 ### Build

@@ -58,6 +58,7 @@ class ArgCat:
         if is_a_bool:
             key_entity.is_a_bool = is_a_bool
             key_entity.value = 'False'
+            key_entity.bool_value = False
         if is_a_path:
             key_entity.is_a_path = is_a_path
         self.add_key_entity(key_entity)
@@ -194,8 +195,10 @@ class ArgCat:
         if key_entity.is_a_bool:
             if from_env:
                 if value in ['True', 'true', 'Yes', 'yes', 'y', '1']:
+                    key_entity.value = "True"
                     key_entity.bool_value = True
                 else:
+                    key_entity.value = "False"
                     key_entity.bool_value = False
             else:
                 key_entity.bool_value = True
